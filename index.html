@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>알고리즘 일기</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #faf7f2;
+      --bg-card: #fff9f2;
+      --border: #e8dfd4;
+      --accent: #c4956a;
+      --accent-light: #f0e6d8;
+      --accent-dark: #a0745a;
+      --text-primary: #3a2e24;
+      --text-secondary: #7a6a5a;
+      --text-muted: #b0a090;
+      --good: #6a9e7f;
+      --good-light: #eaf4ee;
+      --bad: #c47a7a;
+      --bad-light: #f9eded;
+      --shadow: 0 2px 12px rgba(160, 120, 80, 0.10);
+      --shadow-hover: 0 4px 20px rgba(160, 120, 80, 0.18);
+      --tab-h: 64px;
+    }
+
+    body {
+      background-color: var(--bg);
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: calc(var(--tab-h) + 24px);
+    }
+
+    /* ── 앱 헤더 ── */
+    .app-header {
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .app-title span {
+      color: var(--accent);
+    }
+
+    .header-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── 하단 탭 바 ── */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: var(--tab-h);
+      background: rgba(250, 247, 242, 0.96);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      z-index: 90;
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    .tab-item.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .tab-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── 공통 컨테이너 ── */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      padding: 0 20px;
+      animation: fadeIn 0.28s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── 홈 화면 ── */
+    .date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-light);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--accent-dark);
+      margin-bottom: 20px;
+    }
+
+    .date-badge::before {
+      content: '📅';
+      font-size: 13px;
+    }
+
+    .home-heading {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .home-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    .input-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .label-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .label-dot.good {
+      background: var(--good);
+    }
+
+    .label-dot.bad {
+      background: var(--bad);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--text-primary);
+      resize: vertical;
+      line-height: 1.7;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(196, 149, 106, 0.12);
+    }
+
+    textarea.good-area:focus {
+      border-color: var(--good);
+      box-shadow: 0 0 0 3px rgba(106, 158, 127, 0.12);
+    }
+
+    textarea.bad-area:focus {
+      border-color: var(--bad);
+      box-shadow: 0 0 0 3px rgba(196, 122, 122, 0.12);
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+      opacity: 0.6;
+    }
+
+    /* ── 버튼 ── */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(196, 149, 106, 0.30);
+      letter-spacing: -0.2px;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 6px 18px rgba(160, 116, 90, 0.35);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      font-size: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent-dark);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-row .btn-primary {
+      flex: 1.6;
+    }
+
+    .btn-row .btn-secondary {
+      flex: 1;
+      margin-top: 0;
+      width: auto;
+    }
+
+    /* ── 분석 결과 화면 ── */
+    .result-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .result-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .result-heading {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .result-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .result-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .result-card-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    /* 취향 요약 placeholder */
+    .result-summary-placeholder {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #c8bdb0;
+      font-style: italic;
+    }
+
+    /* 코멘트 placeholder */
+    .result-comment-placeholder {
+      font-size: 14px;
+      color: #c8bdb0;
+      line-height: 1.7;
+      font-style: italic;
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    /* 결과 채워진 상태 */
+    .result-summary-text {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-primary);
+    }
+
+    .result-comment-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      font-style: italic;
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    /* ── 6개 카테고리 키워드 ── */
+    .keyword-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kw-category {
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .kw-category-label {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .kw-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 28px;
+    }
+
+    .kw-empty-hint {
+      font-size: 11px;
+      color: inherit;
+      opacity: 0.45;
+      align-self: center;
+      font-style: italic;
+    }
+
+    /* 카테고리별 파스텔 색상 */
+    .kw-style {
+      background: #fdeef3;
+    }
+
+    .kw-style .kw-category-label {
+      color: #b5375e;
+    }
+
+    .kw-interest {
+      background: #e8f0fe;
+    }
+
+    .kw-interest .kw-category-label {
+      color: #3a5fa8;
+    }
+
+    .kw-emotion {
+      background: #f0ebfa;
+    }
+
+    .kw-emotion .kw-category-label {
+      color: #7048a8;
+    }
+
+    .kw-format {
+      background: #e6f6f2;
+    }
+
+    .kw-format .kw-category-label {
+      color: #2e7d64;
+    }
+
+    .kw-topic {
+      background: #fef9e6;
+    }
+
+    .kw-topic .kw-category-label {
+      color: #9a6f10;
+    }
+
+    .kw-avoid {
+      background: #f5f5f5;
+    }
+
+    .kw-avoid .kw-category-label {
+      color: #616161;
+    }
+
+    /* 카테고리별 태그 색 */
+    .kw-style .kw-tag {
+      background: #fbd5e2;
+      color: #b5375e;
+    }
+
+    .kw-interest .kw-tag {
+      background: #c9dafc;
+      color: #2d4fa0;
+    }
+
+    .kw-emotion .kw-tag {
+      background: #e2d5f8;
+      color: #6437a4;
+    }
+
+    .kw-format .kw-tag {
+      background: #c2ede3;
+      color: #1e6b55;
+    }
+
+    .kw-topic .kw-tag {
+      background: #faecc2;
+      color: #7a5708;
+    }
+
+    .kw-avoid .kw-tag {
+      background: #e5e5e5;
+      color: #505050;
+    }
+
+    .kw-tag {
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ── 로딩 오버레이 ── */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(250, 247, 242, 0.88);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    /* ── 아카이브 화면 ── */
+    .archive-heading {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .archive-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .archive-empty {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--text-muted);
+    }
+
+    .archive-empty-icon {
+      font-size: 44px;
+      margin-bottom: 14px;
+    }
+
+    .archive-empty-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .archive-empty-text {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .archive-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+
+    .archive-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .archive-card-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .archive-card-summary {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .archive-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .archive-card-tags .kw-tag {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+
+    /* ── 토스트 알림 ── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--tab-h) + 16px);
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--text-primary);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── 아카이브 상세 모달 ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(58, 46, 36, 0.40);
+      z-index: 150;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: var(--bg);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 24px 20px calc(var(--tab-h) + 20px);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(40px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+
+    .modal-input-preview {
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .modal-input-label {
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .modal-input-preview.good-preview {
+      background: var(--good-light);
+    }
+
+    .modal-input-preview.good-preview .modal-input-label {
+      color: var(--good);
+    }
+
+    .modal-input-preview.bad-preview {
+      background: var(--bad-light);
+    }
+
+    .modal-input-preview.bad-preview .modal-input-label {
+      color: var(--bad);
+    }
+
+    .modal-input-text {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .modal-close-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      background: #e8d4c0;
+    }
+
+    .modal-delete-btn {
+      width: 100%;
+      padding: 12px;
+      background: none;
+      color: var(--bad);
+      border: none;
+      font-size: 13px;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .modal-delete-btn:hover {
+      opacity: 0.7;
+    }
+
+    /* ── 스크롤바 ── */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    /* ── 오늘 기록 완료 배너 ── */
+    .today-banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--good-light);
+      border: 1.5px solid #b8dfc8;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #3a7a58;
+    }
+    .today-banner.visible { display: flex; }
+
+    /* ── 아카이브 카드 개선 ── */
+    .archive-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .archive-card-date { margin-bottom: 0; }
+
+    .card-delete-btn {
+      background: none;
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 8px;
+      opacity: 0.4;
+      transition: opacity 0.2s, background 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .card-delete-btn:hover { opacity: 1; background: var(--bad-light); }
+
+    .archive-card-comment {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <div class="app-title">알고리즘 <span>일기</span></div>
+    <div class="header-date" id="header-date"></div>
+  </header>
+
+  <!-- ─────────── 화면 1: 홈 ─────────── -->
+  <div id="screen-home" class="screen active">
+
+    <div class="date-badge" id="today-badge"></div>
+
+    <div class="today-banner" id="today-banner-notice">
+      ✅ 오늘의 기록 완료 — 아카이브에서 확인하세요
+    </div>
+
+    <h1 class="home-heading">오늘의 피드,<br>어떻게 느끼셨나요?</h1>
+    <p class="home-sub">좋았던 것과 별로였던 것을 적으면<br>AI가 당신의 취향을 분석해 드려요.</p>
+
+    <div class="input-section">
+      <div class="input-label">
+        <span class="label-dot good"></span>
+        오늘 좋았던 콘텐츠
+      </div>
+      <textarea id="input-good" class="good-area" placeholder="ex. 감성적인 카페 브이로그, 짧은 독서 기록" maxlength="500"
+        oninput="updateCharCount(this, 'count-good')"></textarea>
+      <div class="char-count"><span id="count-good">0</span> / 500</div>
+    </div>
+
+    <div class="input-section">
+      <div class="input-label">
+        <span class="label-dot bad"></span>
+        오늘 별로였던 콘텐츠
+      </div>
+      <textarea id="input-bad" class="bad-area" placeholder="ex. 자극적인 썸네일, 광고가 많은 영상" maxlength="500"
+        oninput="updateCharCount(this, 'count-bad')"></textarea>
+      <div class="char-count"><span id="count-bad">0</span> / 500</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn-primary" onclick="handleAnalyze()">✨ 분석하기</button>
+
+  </div>
+
+  <!-- ─────────── 화면 2: 분석 결과 ─────────── -->
+  <div id="screen-result" class="screen">
+
+    <div class="result-header">
+      <div class="result-icon">🪞</div>
+      <div class="result-heading">오늘의 취향 분석</div>
+      <div class="result-date" id="result-date-label"></div>
+    </div>
+
+    <!-- 취향 요약 -->
+    <div class="result-card">
+      <div class="result-card-title">취향 요약</div>
+      <div class="result-summary-placeholder" id="result-summary">
+        취향 요약이 여기에 표시돼요
+      </div>
+    </div>
+
+    <!-- 취향 키워드 — 6개 카테고리 -->
+    <div class="result-card">
+      <div class="result-card-title">취향 키워드</div>
+      <div class="keyword-categories" id="result-keywords">
+
+        <div class="kw-category kw-style">
+          <div class="kw-category-label">🎨 스타일</div>
+          <div class="kw-tags" id="kw-style">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+        <div class="kw-category kw-interest">
+          <div class="kw-category-label">🧠 관심사</div>
+          <div class="kw-tags" id="kw-interest">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+        <div class="kw-category kw-emotion">
+          <div class="kw-category-label">😌 감정</div>
+          <div class="kw-tags" id="kw-emotion">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+        <div class="kw-category kw-format">
+          <div class="kw-category-label">📱 콘텐츠 형식</div>
+          <div class="kw-tags" id="kw-format">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+        <div class="kw-category kw-topic">
+          <div class="kw-category-label">🌍 주제</div>
+          <div class="kw-tags" id="kw-topic">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+        <div class="kw-category kw-avoid">
+          <div class="kw-category-label">🚫 피하고 싶은 것</div>
+          <div class="kw-tags" id="kw-avoid">
+            <span class="kw-empty-hint">AI 분석 후 채워져요</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 한 줄 코멘트 -->
+    <div class="result-card">
+      <div class="result-card-title">오늘의 한 마디</div>
+      <div class="result-comment-placeholder" id="result-comment">
+        코멘트가 여기에 표시돼요
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="handleSave()">💾 기록 저장하기</button>
+      <button class="btn-secondary" onclick="showHome()">다시 입력</button>
+    </div>
+
+  </div>
+
+  <!-- ─────────── 화면 3: 아카이브 ─────────── -->
+  <div id="screen-archive" class="screen">
+
+    <div class="archive-heading">보관함</div>
+    <div class="archive-sub" id="archive-count-text"></div>
+
+    <div id="archive-list"></div>
+
+  </div>
+
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">분석 중이에요... 🔍</div>
+  </div>
+
+  <!-- 토스트 알림 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 아카이브 상세 모달 -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleModalOverlayClick(event)">
+    <div class="modal-sheet" id="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-date" id="modal-date"></div>
+
+      <div class="modal-input-preview good-preview">
+        <div class="modal-input-label">👍 좋았던 콘텐츠</div>
+        <div class="modal-input-text" id="modal-good"></div>
+      </div>
+
+      <div class="modal-input-preview bad-preview">
+        <div class="modal-input-label">👎 별로였던 콘텐츠</div>
+        <div class="modal-input-text" id="modal-bad"></div>
+      </div>
+
+      <div class="result-card" style="margin-bottom: 10px">
+        <div class="result-card-title">취향 요약</div>
+        <div id="modal-summary"
+          style="font-size:14px; font-family:'Noto Serif KR',serif; line-height:1.7; color:var(--text-primary)"></div>
+      </div>
+
+      <div class="result-card" style="margin-bottom: 10px">
+        <div class="result-card-title">키워드</div>
+        <div class="keyword-categories" id="modal-keywords" style="gap:8px"></div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card-title">한 마디</div>
+        <div id="modal-comment"
+          style="font-size:13px; color:var(--text-secondary); line-height:1.7; font-style:italic; text-align:center">
+        </div>
+      </div>
+
+      <button class="modal-close-btn" onclick="closeModal()">닫기</button>
+      <button class="modal-delete-btn" onclick="handleDeleteFromModal()">이 기록 삭제하기</button>
+    </div>
+  </div>
+
+  <!-- 하단 탭 바 -->
+  <nav class="tab-bar">
+    <button class="tab-item active" id="tab-home" onclick="showHome()">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">홈</span>
+    </button>
+    <button class="tab-item" id="tab-archive" onclick="showArchive()">
+      <span class="tab-icon">📖</span>
+      <span class="tab-label">아카이브</span>
+    </button>
+  </nav>
+
+  <script>
+    // ── API 설정 ──
+    const API_KEY = "여기에_API_키를_입력하세요"; // console.anthropic.com 에서 발급
+    const MODEL = "claude-sonnet-4-20250514";
+
+    // ── 상태 ──
+    let currentGood = '';
+    let currentBad = '';
+    let currentResult = null;
+    let openModalId = null;
+
+    // ── 초기화 ──
+    document.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const full = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+      document.getElementById('today-badge').textContent = full;
+      document.getElementById('header-date').textContent = full;
+      document.getElementById('result-date-label').textContent = full;
+      checkTodayBanner();
+    });
+
+    // ── 글자 수 ──
+    function updateCharCount(el, countId) {
+      document.getElementById(countId).textContent = el.value.length;
+    }
+
+    // ── 탭 ──
+    function setActiveTab(tabId) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // ── 화면 전환 ──
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showHome() { showScreen('screen-home'); setActiveTab('tab-home'); }
+    function showResult() { showScreen('screen-result'); setActiveTab('tab-home'); }
+    function showArchive() { renderArchiveList(); showScreen('screen-archive'); setActiveTab('tab-archive'); }
+
+    // ── 분석하기 ──
+    async function handleAnalyze() {
+      const good = document.getElementById('input-good').value.trim();
+      const bad  = document.getElementById('input-bad').value.trim();
+
+      if (!good || !bad) {
+        showToast('두 칸 모두 입력해줘요 ✏️');
+        return;
+      }
+      if (!API_KEY || API_KEY === '여기에_입력하세요') {
+        showToast('API 키를 입력해주세요');
+        return;
+      }
+
+      currentGood = good;
+      currentBad  = bad;
+      showLoading(true);
+
+      try {
+        const text   = await callClaudeAPI(good, bad);
+        const parsed = parseResponse(text);
+
+        const hasContent = parsed.summary ||
+          Object.values(parsed.keywords).some(arr => arr.length > 0);
+        if (!hasContent) throw new Error('format_error');
+
+        currentResult = parsed;
+        fillResultScreen(parsed);
+        showLoading(false);
+        showResult();
+      } catch (err) {
+        showLoading(false);
+        if (err.message === 'format_error') {
+          showToast('분석 결과를 불러오지 못했어요. 다시 시도해줘요 😢');
+        } else {
+          showToast('분석에 실패했어요. 다시 시도해주세요 😢');
+        }
+        console.error(err);
+      }
+    }
+
+    // ── Claude API 호출 ──
+    async function callClaudeAPI(good, bad) {
+      const prompt =
+        `사용자가 오늘 본 SNS 콘텐츠야.
+좋았던 콘텐츠: ${good || '없음'}
+별로였던 콘텐츠: ${bad || '없음'}
+
+이걸 분석해서 아래 형식으로만 답해줘. 다른 말은 하지 마.
+
+취향 요약: (2~3문장으로 이 사람의 취향 설명)
+
+취향 키워드:
+🎨 스타일: #키워드1 #키워드2
+🧠 관심사: #키워드1 #키워드2
+😌 감정: #키워드1 #키워드2
+📱 콘텐츠 형식: #키워드1 #키워드2
+🌍 주제: #키워드1 #키워드2
+🚫 피하고 싶은 것: #키워드1 #키워드2
+
+한 줄 코멘트: (당신은 ~한 사람이네요 형식으로)`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      return data.content[0].text;
+    }
+
+    // ── 응답 파싱 ──
+    function parseResponse(text) {
+      const result = {
+        summary: '',
+        keywords: { 스타일: [], 관심사: [], 감정: [], 콘텐츠형식: [], 주제: [], 피하고싶은것: [] },
+        comment: '',
+      };
+
+      const summaryM = text.match(/취향\s*요약\s*[:\s]+(.+?)(?=\n\s*\n|\n취향\s*키워드|$)/s);
+      if (summaryM) result.summary = summaryM[1].trim();
+
+      const catPatterns = [
+        { key: '스타일', re: /🎨\s*스타일\s*[:\s]+(.+)/ },
+        { key: '관심사', re: /🧠\s*관심사\s*[:\s]+(.+)/ },
+        { key: '감정', re: /😌\s*감정\s*[:\s]+(.+)/ },
+        { key: '콘텐츠형식', re: /📱\s*콘텐츠\s*형식\s*[:\s]+(.+)/ },
+        { key: '주제', re: /🌍\s*주제\s*[:\s]+(.+)/ },
+        { key: '피하고싶은것', re: /🚫\s*피하고\s*싶은\s*것\s*[:\s]+(.+)/ },
+      ];
+      catPatterns.forEach(({ key, re }) => {
+        const m = text.match(re);
+        if (m) {
+          result.keywords[key] = m[1].trim()
+            .split(/\s+/)
+            .filter(t => t.startsWith('#'))
+            .map(t => t.slice(1));
+        }
+      });
+
+      const commentM = text.match(/한\s*줄\s*코멘트\s*[:\s]+(.+)/);
+      if (commentM) result.comment = commentM[1].trim();
+
+      return result;
+    }
+
+    // ── 결과 화면 채우기 ──
+    function fillResultScreen(parsed) {
+      const summaryEl = document.getElementById('result-summary');
+      summaryEl.textContent = parsed.summary || '요약을 불러올 수 없어요';
+      summaryEl.className = 'result-summary-text';
+
+      const catMap = [
+        { key: '스타일', id: 'kw-style' },
+        { key: '관심사', id: 'kw-interest' },
+        { key: '감정', id: 'kw-emotion' },
+        { key: '콘텐츠형식', id: 'kw-format' },
+        { key: '주제', id: 'kw-topic' },
+        { key: '피하고싶은것', id: 'kw-avoid' },
+      ];
+      catMap.forEach(({ key, id }) => {
+        const el = document.getElementById(id);
+        const tags = parsed.keywords[key] || [];
+        el.innerHTML = tags.length
+          ? tags.map(t => `<span class="kw-tag">${escHtml(t)}</span>`).join('')
+          : '<span class="kw-empty-hint">키워드 없음</span>';
+      });
+
+      const commentEl = document.getElementById('result-comment');
+      commentEl.textContent = parsed.comment || '코멘트를 불러올 수 없어요';
+      commentEl.className = 'result-comment-text';
+    }
+
+    // ── 기록 저장하기 ──
+    function handleSave() {
+      if (!currentResult) {
+        showToast('저장할 분석 결과가 없어요');
+        return;
+      }
+
+      const records    = loadRecords();
+      const dateKey    = todayKey();
+      const now        = new Date();
+      const days       = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const dateDisplay = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}`;
+
+      const existingIdx = records.findIndex(r => r.date === dateKey);
+      if (existingIdx !== -1) {
+        if (!confirm('오늘은 이미 저장했어요. 덮어쓸까요?')) return;
+        records.splice(existingIdx, 1);
+      }
+
+      records.unshift({
+        id: Date.now(),
+        date: dateKey,
+        dateDisplay: dateDisplay,
+        good: currentGood,
+        bad: currentBad,
+        summary: currentResult.summary,
+        keywords: currentResult.keywords,
+        comment: currentResult.comment,
+      });
+      saveRecords(records);
+
+      showToast('오늘의 취향이 저장됐어요 ✨');
+
+      document.getElementById('input-good').value = '';
+      document.getElementById('input-bad').value  = '';
+      document.getElementById('count-good').textContent = '0';
+      document.getElementById('count-bad').textContent  = '0';
+      currentGood   = '';
+      currentBad    = '';
+      currentResult = null;
+
+      setTimeout(() => { showHome(); checkTodayBanner(); }, 1400);
+    }
+
+    // ── 아카이브 렌더링 ──
+    function renderArchiveList() {
+      const records = loadRecords();
+      const listEl = document.getElementById('archive-list');
+      const countEl = document.getElementById('archive-count-text');
+
+      if (records.length === 0) {
+        countEl.textContent = '';
+        listEl.innerHTML = `
+          <div class="archive-empty">
+            <div class="archive-empty-icon">📓</div>
+            <div class="archive-empty-title">아직 기록이 없어요</div>
+            <div class="archive-empty-text">오늘의 취향을 기록해봐요 ✨</div>
+          </div>`;
+        return;
+      }
+
+      countEl.textContent = `총 ${records.length}개의 기록`;
+      listEl.innerHTML = '';
+
+      records.forEach(rec => {
+        const card = document.createElement('div');
+        card.className = 'archive-card';
+        card.onclick   = () => openModal(rec.id);
+        card.innerHTML = `
+          <div class="archive-card-header">
+            <div class="archive-card-date">${escHtml(rec.dateDisplay || rec.date)}</div>
+            <button class="card-delete-btn" onclick="handleCardDelete(${rec.id}, event)" title="삭제">🗑️</button>
+          </div>
+          <div class="archive-card-summary">${escHtml(rec.summary || '(요약 없음)')}</div>
+          <div class="archive-card-tags">${buildArchiveTags(rec.keywords || {})}</div>
+          ${rec.comment ? `<div class="archive-card-comment">"${escHtml(rec.comment)}"</div>` : ''}
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function buildArchiveTags(keywords) {
+      const order = [
+        { key: '스타일', cls: 'kw-style' },
+        { key: '관심사', cls: 'kw-interest' },
+        { key: '감정', cls: 'kw-emotion' },
+        { key: '콘텐츠형식', cls: 'kw-format' },
+        { key: '주제', cls: 'kw-topic' },
+        { key: '피하고싶은것', cls: 'kw-avoid' },
+      ];
+      let html = '', count = 0;
+      for (const { key, cls } of order) {
+        const first = (keywords[key] || [])[0];
+        if (first && count < 5) { html += `<span class="kw-tag ${cls}">${escHtml(first)}</span>`; count++; }
+      }
+      return html;
+    }
+
+    // ── 모달 ──
+    function openModal(id) {
+      const rec = loadRecords().find(r => r.id === id);
+      if (!rec) return;
+
+      openModalId = id;
+      document.getElementById('modal-date').textContent = rec.dateDisplay || rec.date;
+      document.getElementById('modal-good').textContent = rec.good || '(입력 없음)';
+      document.getElementById('modal-bad').textContent = rec.bad || '(입력 없음)';
+      document.getElementById('modal-summary').textContent = rec.summary || '';
+      document.getElementById('modal-comment').textContent = rec.comment || '';
+
+      const kwEl = document.getElementById('modal-keywords');
+      kwEl.innerHTML = '';
+      const catDefs = [
+        { key: '스타일', cls: 'kw-style', label: '🎨 스타일' },
+        { key: '관심사', cls: 'kw-interest', label: '🧠 관심사' },
+        { key: '감정', cls: 'kw-emotion', label: '😌 감정' },
+        { key: '콘텐츠형식', cls: 'kw-format', label: '📱 콘텐츠 형식' },
+        { key: '주제', cls: 'kw-topic', label: '🌍 주제' },
+        { key: '피하고싶은것', cls: 'kw-avoid', label: '🚫 피하고 싶은 것' },
+      ];
+      catDefs.forEach(def => {
+        const tags = (rec.keywords || {})[def.key] || [];
+        if (!tags.length) return;
+        const div = document.createElement('div');
+        div.className = `kw-category ${def.cls}`;
+        div.innerHTML = `
+        <div class="kw-category-label">${def.label}</div>
+        <div class="kw-tags">${tags.map(t => `<span class="kw-tag">${escHtml(t)}</span>`).join('')}</div>`;
+        kwEl.appendChild(div);
+      });
+
+      document.getElementById('modal-overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+      document.body.style.overflow = '';
+      openModalId = null;
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    }
+
+    function handleDeleteFromModal() {
+      if (!openModalId) return;
+      if (!confirm('이 기록을 삭제할까요?')) return;
+      saveRecords(loadRecords().filter(r => r.id !== openModalId));
+      closeModal();
+      renderArchiveList();
+      checkTodayBanner();
+      showToast('🗑️ 기록이 삭제됐어요');
+    }
+
+    // ── localStorage ──
+    function loadRecords() {
+      try { return JSON.parse(localStorage.getItem('feedDiaryRecords') || '[]'); }
+      catch { return []; }
+    }
+    function saveRecords(records) {
+      localStorage.setItem('feedDiaryRecords', JSON.stringify(records));
+    }
+
+    // ── 오늘 날짜 키 ──
+    function todayKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    }
+
+    // ── 오늘 기록 배너 ──
+    function checkTodayBanner() {
+      const hasTodayRecord = loadRecords().some(r => r.date === todayKey());
+      const banner = document.getElementById('today-banner-notice');
+      if (banner) banner.classList.toggle('visible', hasTodayRecord);
+    }
+
+    // ── 카드 삭제 (이벤트 버블링 차단) ──
+    function handleCardDelete(id, event) {
+      event.stopPropagation();
+      if (!confirm('이 기록을 삭제할까요?')) return;
+      saveRecords(loadRecords().filter(r => r.id !== id));
+      renderArchiveList();
+      checkTodayBanner();
+      showToast('🗑️ 기록이 삭제됐어요');
+    }
+
+    // ── 유틸 ──
+    function showLoading(on) {
+      document.getElementById('loading').classList.toggle('active', on);
+    }
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2600);
+    }
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+
+</html>
